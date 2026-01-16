@@ -196,9 +196,18 @@ class UniversalModuleGraph:
         # Use topological sort for dependency-aware ordering
         try:
             return list(nx.topological_sort(dag))
-        except nx.NetworkXError:
-            # If cycles still exist, use default order
-            return module_ids
+        except nx.NetworkXError as e:
+            # If cycles still exist (shouldn't happen after filtering feedback edges),
+            # use a deterministic order based on module type priority
+            # This ensures consistent processing even with complex dependencies
+            priority_order = ["logical", "spatial", "temporal", "abstract", "meta"]
+            ordered = sorted(module_ids, 
+                           key=lambda mid: (
+                               priority_order.index(self.modules[mid].module_type) 
+                               if self.modules[mid].module_type in priority_order 
+                               else len(priority_order)
+                           ))
+            return ordered
     
     def _synthesize_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """

@@ -97,7 +97,8 @@ class Tetrahedron:
             try:
                 sub_tet = Tetrahedron(sub_vertices)
                 sub_volumes.append(sub_tet.volume)
-            except:
+            except (ValueError, IndexError):
+                # Invalid tetrahedron configuration
                 return False
         
         # Point is inside if sum of sub-volumes equals original volume
@@ -186,8 +187,9 @@ class TetrahedralNetwork:
                     try:
                         tet = Tetrahedron(vertices)
                         self.tetrahedra.append(tet)
-                    except:
-                        pass
+                    except (ValueError, IndexError):
+                        # Skip invalid tetrahedron configurations
+                        continue
     
     def _find_nearest_nodes(self, node: TetrahedralNode, k: int = 4) -> List[TetrahedralNode]:
         """
